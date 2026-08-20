@@ -49,5 +49,10 @@ always_comb begin
 			default: alu_control = ALU_ADD;
 		endcase
 	end
+	else if (opcode == 7'b0000011) //LW
+		alu_control = ALU_ADD;
+	else if (opcode == 7'b0100011)
+		alu_control = ALU_ADD;
+	
 end
 endmodule
