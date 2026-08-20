@@ -1,0 +1,7 @@
+# simulation executables
+*_sim
+/sim
+
+# waveforms
+*.vcd
+*.fst
