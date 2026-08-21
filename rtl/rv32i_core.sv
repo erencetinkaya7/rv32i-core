@@ -15,12 +15,26 @@ logic [3:0]  alu_control;
 
 logic reg_write, alu_src;
 
-logic        imm_type, mem_write;
+logic mem_write;
 logic [1:0]  result_src;
 logic [31:0] memory_read_data;
 logic [31:0] writeback_data;
 
-assign next_pc = pc + 32'd4;
+logic [31:0] alu_operand_a;
+logic [31:0] pc_plus4;
+logic [31:0] pc_target;
+logic [31:0] jalr_target;
+
+logic [2:0] imm_sel;
+logic [1:0] alu_a_sel;
+
+logic branch_enable;
+logic branch_taken;
+logic jump;
+logic jalr;
+
+assign pc_plus4 = pc + 32'd4;
+assign pc_target = pc + immediate;
 
 program_counter pc_unit (
 	.clk(clk),
@@ -44,7 +58,7 @@ instruction_fields fields (
 	.funct7(funct7)
 );
 
-assign writeback_data = (result_src == 2'b01) ? memory_read_data : alu_result;
+assign writeback_data = (result_src == 2'b01) ? memory_read_data : (result_src == 2'b10) ? pc_plus4 : alu_result;
 
 register_file rf (
     .clk(clk),
@@ -61,9 +75,13 @@ control_unit control (
     .opcode(opcode),
     .reg_write(reg_write),
     .alu_src(alu_src),
-    .imm_type(imm_type),
+    .imm_sel(imm_sel),
     .mem_write(mem_write),
-    .result_src(result_src)
+    .result_src(result_src),
+    .alu_a_sel(alu_a_sel),
+    .branch_enable(branch_enable),
+    .jump(jump),
+    .jalr(jalr)
 );
 
 alu_decoder decoder (
@@ -76,7 +94,7 @@ alu_decoder decoder (
 immediate_generator imm_gen (
     .instruction(instruction),
     .immediate(immediate),
-    .imm_type(imm_type)
+    .imm_sel(imm_sel)
 );
 
 data_memory dmem (
@@ -89,10 +107,31 @@ data_memory dmem (
 
 assign alu_operand_b = alu_src ? immediate : rs2_data;
 
+always_comb begin
+	case (alu_a_sel)
+		2'b00: alu_operand_a = rs1_data;
+		2'b01: alu_operand_a = pc;
+		2'b10: alu_operand_a = 32'b0;
+		default: alu_operand_a = rs1_data;
+	endcase
+end
+
 alu alu_unit (
-    .a(rs1_data),
+    .a(alu_operand_a),
     .b(alu_operand_b),
     .alu_control(alu_control),
     .result(alu_result)
 );
+
+branch_unit branch_control (
+    .rs1_data(rs1_data),
+    .rs2_data(rs2_data),
+    .funct3(funct3),
+    .branch_enable(branch_enable),
+    .branch_taken(branch_taken)
+);
+
+assign jalr_target = alu_result & 32'hFFFFFFFE;
+assign next_pc = jalr ? jalr_target : (branch_taken || jump) ? pc_target :
+    pc_plus4;
 endmodule
