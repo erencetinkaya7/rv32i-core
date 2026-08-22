@@ -1,7 +1,20 @@
-# simulation executables
-*_sim
-/sim
 
-# waveforms
+
+
+# Simulation outputs
+*_sim
 *.vcd
-*.fst
+compile.log
+
+# RISC-V build outputs
+sw/*.elf
+sw/*.bin
+sw/*.hex
+sw/*.o
+
+# Build directories
+build/
+
+# Editor / OS junk
+.DS_Store
+*~
