@@ -1,9 +1,10 @@
 module data_memory_tb;
 
-    logic        clk;
-    logic        mem_write;
+    logic clk;
+    logic mem_write;
     logic [31:0] address;
     logic [31:0] write_data;
+    logic [2:0] funct3;
     logic [31:0] read_data;
 
     data_memory dut (
@@ -11,58 +12,96 @@ module data_memory_tb;
         .mem_write(mem_write),
         .address(address),
         .write_data(write_data),
+        .funct3(funct3),
         .read_data(read_data)
     );
 
     always #5 clk = ~clk;
 
     initial begin
-        $dumpfile("data_memory.vcd");
-        $dumpvars(0, data_memory_tb);
-
-        clk        = 0;
-        mem_write  = 0;
-        address    = 0;
+        clk = 0;
+        mem_write = 0;
+        address = 0;
         write_data = 0;
+        funct3 = 0;
 
-        // memory[2]'ye yaz -> byte address = 8
-        address    = 32'd8;
-        write_data = 32'd123;
-        mem_write  = 1;
-
-        #6; // posedge geçti
-
-        mem_write = 0;
-        #1;
-
-        if (read_data == 32'd123)
-            $display("WRITE/READ PASS");
-        else
-            $display("WRITE/READ FAIL: %0d", read_data);
-
-        // Başka word'e yaz
-        address    = 32'd12;
+        // SW - Store Word
+        address = 0;
         write_data = 32'hDEADBEEF;
-        mem_write  = 1;
-
+        funct3 = 3'b010;
+        mem_write = 1;
         #10;
-
         mem_write = 0;
-        #1;
 
+        // LW - Load Word
+        funct3 = 3'b010;
+        #1;
         if (read_data == 32'hDEADBEEF)
-            $display("SECOND WORD PASS");
+            $display("LW/SW PASS");
         else
-            $display("SECOND WORD FAIL: %h", read_data);
+            $display("LW/SW FAIL: %h", read_data);
 
-        // İlk word hâlâ duruyor mu?
-        address = 32'd8;
+        // LB - Load Byte signed: 0xEF -> 0xFFFFFFEF
+        address = 0;
+        funct3 = 3'b000;
         #1;
-
-        if (read_data == 32'd123)
-            $display("PERSISTENCE PASS");
+        if (read_data == 32'hFFFFFFEF)
+            $display("LB PASS");
         else
-            $display("PERSISTENCE FAIL: %0d", read_data);
+            $display("LB FAIL: %h", read_data);
+
+        // LBU - Load Byte Unsigned: address 1 -> 0xBE
+        address = 1;
+        funct3 = 3'b100;
+        #1;
+        if (read_data == 32'h000000BE)
+            $display("LBU PASS");
+        else
+            $display("LBU FAIL: %h", read_data);
+
+        // LH - Load Halfword signed: 0xBEEF
+        address = 0;
+        funct3 = 3'b001;
+        #1;
+        if (read_data == 32'hFFFFBEEF)
+            $display("LH PASS");
+        else
+            $display("LH FAIL: %h", read_data);
+
+        // LHU - upper halfword: 0xDEAD
+        address = 2;
+        funct3 = 3'b101;
+        #1;
+        if (read_data == 32'h0000DEAD)
+            $display("LHU PASS");
+        else
+            $display("LHU FAIL: %h", read_data);
+
+        // SB - replace byte at address 1 with AA
+        address = 1;
+        write_data = 32'h000000AA;
+        funct3 = 3'b000;
+        mem_write = 1;
+        #10;
+        mem_write = 0;
+
+        if (dut.memory[0] == 32'hDEADAAEF)
+            $display("SB PASS");
+        else
+            $display("SB FAIL: %h", dut.memory[0]);
+
+        // SH - replace upper halfword with 1234
+        address = 2;
+        write_data = 32'h00001234;
+        funct3 = 3'b001;
+        mem_write = 1;
+        #10;
+        mem_write = 0;
+
+        if (dut.memory[0] == 32'h1234AAEF)
+            $display("SH PASS");
+        else
+            $display("SH FAIL: %h", dut.memory[0]);
 
         $finish;
     end

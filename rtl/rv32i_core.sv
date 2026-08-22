@@ -102,7 +102,8 @@ data_memory dmem (
     .mem_write(mem_write),
     .address(alu_result),
     .write_data(rs2_data),
-    .read_data(memory_read_data)
+    .read_data(memory_read_data),
+    .funct3(funct3)
 );
 
 assign alu_operand_b = alu_src ? immediate : rs2_data;
