@@ -1,28 +1,31 @@
 # RV32I Single-Cycle Core
 
-> A simple single-cycle RV32I processor implemented from scratch in SystemVerilog.
+![SystemVerilog](https://img.shields.io/badge/SystemVerilog-RTL-blue)
+![RISC--V](https://img.shields.io/badge/RISC--V-RV32I-orange)
+![Status](https://img.shields.io/badge/status-v1%20complete-brightgreen)
 
-This project focuses on understanding the relationship between the **RISC-V ISA**, processor **datapath**, **control logic**, memory system, and their RTL implementation.
+A **single-cycle RV32I processor** implemented from scratch in SystemVerilog.
 
----
-
-## Overview
-
-|                        |                                       |
-| ---------------------- | ------------------------------------- |
-| **ISA**                | RV32I                                 |
-| **Architecture**       | Single-cycle                          |
-| **RTL**                | SystemVerilog                         |
-| **Datapath width**     | 32-bit                                |
-| **Register file**      | 32 × 32-bit                           |
-| **Instruction memory** | Separate                              |
-| **Data memory**        | Separate                              |
-| **Verification**       | Unit + regression + integration tests |
-| **Software flow**      | GNU RISC-V bare-metal toolchain       |
+The project focuses on understanding how the **RISC-V ISA**, processor **datapath**, **control logic**, memory system, and RTL implementation fit together.
 
 ---
 
-## Architecture
+## ⚙️ Overview
+
+|                   |                                      |
+| ----------------- | ------------------------------------ |
+| **ISA**           | RV32I                                |
+| **Architecture**  | Single-cycle                         |
+| **RTL**           | SystemVerilog                        |
+| **Datapath**      | 32-bit                               |
+| **Register File** | 32 × 32-bit                          |
+| **Memory**        | Separate instruction & data memories |
+| **Verification**  | Unit + regression + integration      |
+| **Toolchain**     | GNU RISC-V bare-metal                |
+
+---
+
+## 🧩 Architecture
 
 ```text
                      ┌──────────────────┐
@@ -38,7 +41,7 @@ This project focuses on understanding the relationship between the **RISC-V ISA*
                  │                       │
                  ▼                       ▼
         ┌─────────────────┐      ┌──────────────┐
-        │ Register File   │      │ Control Unit │
+        │  Register File  │      │ Control Unit │
         └────────┬────────┘      └──────┬───────┘
                  │                      │
                  ▼                      │
@@ -65,11 +68,11 @@ This project focuses on understanding the relationship between the **RISC-V ISA*
         └─────────────┘
 ```
 
-The design uses a **single-cycle datapath**, meaning each instruction completes within one clock cycle.
+Each instruction completes in a **single clock cycle**.
 
 ---
 
-## Supported Instructions
+## 📚 Supported Instructions
 
 ### Arithmetic & Logic
 
@@ -109,34 +112,13 @@ The design uses a **single-cycle datapath**, meaning each instruction completes 
 
 ### Upper Immediate
 
-* `LUI`
-* `AUIPC`
+`LUI` · `AUIPC`
 
-**37 RV32I instructions are currently implemented.**
+> **37 RV32I instructions implemented**
 
 ---
 
-## Datapath Features
-
-```text
-ALU operations
-├── Arithmetic
-│   ├── ADD / SUB
-│   ├── SLT
-│   └── SLTU
-│
-├── Logical
-│   ├── AND
-│   ├── OR
-│   └── XOR
-│
-└── Shifts
-    ├── SLL
-    ├── SRL
-    └── SRA
-```
-
-Memory accesses support:
+## 💾 Memory Support
 
 ```text
 8-bit   → LB / LBU / SB
@@ -144,82 +126,78 @@ Memory accesses support:
 32-bit  → LW / SW
 ```
 
-Including:
+Includes:
 
-* signed and unsigned loads
-* sign extension
-* zero extension
-* byte-lane selection
-* halfword selection
+* Sign extension
+* Zero extension
+* Byte-lane selection
+* Halfword selection
+* Signed and unsigned loads
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```text
 rv32i-core/
 │
-├── rtl/
-│   ├── alu.sv
-│   ├── alu_decoder.sv
-│   ├── branch_unit.sv
-│   ├── control_unit.sv
-│   ├── data_memory.sv
-│   ├── immediate_generator.sv
-│   ├── instruction_fields.sv
-│   ├── instruction_memory.sv
-│   ├── program_counter.sv
-│   ├── register_file.sv
-│   └── rv32i_core.sv
-│
-├── tb/
-│   ├── arithmetic_regression_tb.sv
-│   ├── load_store_regression_tb.sv
-│   ├── control_flow_regression_tb.sv
-│   ├── integrated_program_tb.sv
-│   ├── toolchain_program_tb.sv
-│   └── toolchain_integrated_tb.sv
-│
-├── sw/
-│   ├── program.S
-│   └── integrated_program.S
+├── rtl/                     # Processor RTL
+├── tb/                      # Testbenches & regressions
+├── sw/                      # RISC-V assembly programs
 │
 ├── run_regression.sh
 ├── .gitignore
 └── README.md
 ```
 
----
-
-## Verification
-
-The core is tested at multiple levels.
-
-### ISA Regression
+Main RTL blocks include:
 
 ```text
-Arithmetic / Logic     ✓
-Loads / Stores         ✓
-Branches               ✓
-LUI / AUIPC            ✓
-JAL / JALR             ✓
+Program Counter
+Register File
+Immediate Generator
+Control Unit
+ALU Decoder
+ALU
+Branch Unit
+Instruction Memory
+Data Memory
+Top-Level Core
 ```
 
-Tests include corner cases such as:
+---
 
-* signed vs. unsigned comparison
+## ✅ Verification
+
+The design is verified at multiple levels.
+
+| Test Area             | Status |
+| --------------------- | :----: |
+| Arithmetic / Logic    |    ✅   |
+| Loads / Stores        |    ✅   |
+| Branches              |    ✅   |
+| LUI / AUIPC           |    ✅   |
+| JAL / JALR            |    ✅   |
+| Integrated Program    |    ✅   |
+| GNU Toolchain Program |    ✅   |
+
+Regression tests cover important edge cases including:
+
+* signed vs. unsigned comparisons
 * `SRL` vs. `SRA`
 * negative immediates
-* shift amounts
-* sign and zero extension
+* register shift amounts
+* sign / zero extension
 * byte and halfword accesses
 * taken and not-taken branches
-* JAL/JALR link addresses
+* JAL / JALR link addresses
 * JALR target alignment
 
-### Integrated Program
+---
 
-A larger program verifies several subsystems together:
+## 🔁 Integrated Program
+
+A small program is used to verify multiple subsystems together:
 
 ```text
 Loop
@@ -231,30 +209,32 @@ Loop
 Memory Store / Load
  │
  ▼
-Function Call (JAL)
+Function Call
+   JAL
  │
  ▼
-2x + 3
+f(x) = 2x + 3
  │
  ▼
-Function Return (JALR)
+Function Return
+   JALR
  │
  ▼
 Memory Store / Load
 ```
 
-Expected result:
+Expected results:
 
 ```text
-sum = 15
+sum   = 15
 f(15) = 33
 ```
 
 ---
 
-## RISC-V Toolchain
+## 🛠️ RISC-V Toolchain
 
-The project can execute programs generated by the standard GNU RISC-V bare-metal toolchain.
+Assembly programs can be generated using the standard GNU RISC-V bare-metal toolchain and executed directly by the core.
 
 ```text
 program.S
@@ -263,10 +243,10 @@ program.S
 GNU RISC-V Assembler / Linker
     │
     ▼
-program.elf
+ELF
     │
     ▼
-Raw Binary
+Binary
     │
     ▼
 HEX
@@ -278,7 +258,7 @@ Instruction Memory
 RV32I Core
 ```
 
-The toolchain targets:
+Target configuration:
 
 ```text
 -march=rv32i
@@ -287,15 +267,15 @@ The toolchain targets:
 
 ---
 
-## Running the Regression Suite
+## 🧪 Run Tests
 
-Run all software builds and regression tests with:
+Run the complete software build and regression suite with:
 
 ```bash
 ./run_regression.sh
 ```
 
-The expected final result is:
+Expected result:
 
 ```text
 ======================================
@@ -305,33 +285,31 @@ The expected final result is:
 
 ---
 
-## Current Limitations
+## 🚧 Current Limitations
 
-The first version intentionally does **not** implement:
+| Feature                    | Status |
+| -------------------------- | ------ |
+| `FENCE`                    | —      |
+| `ECALL` / `EBREAK`         | —      |
+| Exceptions / Traps         | —      |
+| Interrupts                 | —      |
+| Misaligned Access Handling | —      |
+| Pipeline                   | —      |
+| Cache                      | —      |
 
-| Feature                    | Status          |
-| -------------------------- | --------------- |
-| `FENCE`                    | Not implemented |
-| `ECALL` / `EBREAK`         | Not implemented |
-| Exceptions / traps         | Not implemented |
-| Interrupts                 | Not implemented |
-| Misaligned access handling | Not implemented |
-| Pipeline                   | Not implemented |
-| Cache                      | Not implemented |
-
-These features are outside the scope of the initial single-cycle implementation.
+These features are intentionally outside the scope of the first single-cycle version.
 
 ---
 
-## Status
+## 🚀 Status
+
+**RV32I single-cycle core — v1 complete**
 
 ```text
 RV32I Core
-████████████████████  v1
+████████████████████ 100%
 ```
 
-**Functional single-cycle RV32I processor complete.**
+### Next
 
-Next step:
-
-> **Tang Nano 9K FPGA implementation and peripheral integration**
+**Tang Nano 9K FPGA implementation and peripheral integration**
