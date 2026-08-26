@@ -72,3 +72,154 @@ rv32i-core/
 ├── run_regression.sh
 ├── .gitignore
 └── README.md
+```
+
+---
+
+## ✅ Verification
+
+The core was tested incrementally while developing each part of the datapath.
+
+The final regression suite covers:
+
+* R-type and I-type arithmetic
+* Signed and unsigned comparisons
+* Logical and arithmetic shifts
+* Negative immediates
+* Byte, halfword and word memory accesses
+* Sign and zero extension
+* All six conditional branch instructions
+* Taken and not-taken branches
+* `LUI` and `AUIPC`
+* `JAL` and `JALR`
+* JAL/JALR link addresses
+* JALR target alignment
+* Integrated loop, memory and function-call behavior
+
+### Integration test
+
+A small integration program calculates:
+
+```text
+1 + 2 + 3 + 4 + 5 = 15
+```
+
+and then calls a function implementing:
+
+```text
+f(x) = 2x + 3
+```
+
+producing:
+
+```text
+f(15) = 33
+```
+
+The program uses loops, branches, loads/stores, `JAL` for the function call and `JALR` for the return.
+
+### Software tests
+
+In addition to instruction-level regressions, I use small RISC-V assembly programs to test the core as a complete processor.
+
+Current examples include:
+
+* Array traversal and summation
+* Positive-element summation with signed values
+* Loops and conditional branches
+* Function calls and returns
+* Nested function calls
+* Stack usage and return-address preservation
+* Basic RISC-V ABI register usage
+
+These programs are stored under `sw/` and executed on the RTL core through the GNU RISC-V toolchain flow described below.
+
+### Run all regressions
+
+```bash
+./run_regression.sh
+```
+
+Expected final output:
+
+```text
+ALL RV32I REGRESSIONS PASSED
+```
+
+---
+
+## 🛠️ RISC-V Toolchain
+
+The project also includes a basic software flow using the **GNU RISC-V bare-metal toolchain**.
+
+```text
+Assembly (.S)
+      │
+      ▼
+Object file (.o)
+      │
+      ▼
+Linker
+      │
+      ▼
+ELF
+      │
+      ▼
+Raw binary
+      │
+      ▼
+HEX
+      │
+      ▼
+Instruction Memory
+      │
+      ▼
+RV32I Core
+```
+
+Programs are built for:
+
+```text
+-march=rv32i
+-mabi=ilp32
+```
+
+The generated programs are assembled and linked with the GNU RISC-V toolchain, converted to a simple HEX format, loaded into instruction memory with `$readmemh`, and executed by the core.
+
+---
+
+## 🚧 Current Limitations
+
+This is the first single-cycle version of the processor.
+
+The following features are not currently implemented:
+
+* `FENCE`
+* `ECALL` / `EBREAK`
+* Exceptions and traps
+* Interrupts
+* Misaligned access handling
+* Pipeline
+* Cache
+
+These were intentionally left outside the scope of the initial implementation.
+
+---
+
+## 🚀 Status
+
+**Single-cycle core v1 complete.**
+
+Current progress:
+
+- [x] Single-cycle RV32I datapath and control
+- [x] 37 RV32I instructions
+- [x] Automated regression tests
+- [x] Assembly program execution
+- [x] Function calls, stack and basic ABI usage
+- [x] GNU RISC-V software flow
+- [ ] Tang Nano 9K FPGA bring-up
+- [ ] FPGA execution of the RV32I core
+- [ ] Basic memory-mapped peripherals
+
+The next step is bringing the design onto a **Tang Nano 9K FPGA**.
