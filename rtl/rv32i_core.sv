@@ -1,6 +1,8 @@
-module rv32i_core (
+module rv32i_core #( parameter IMEM_INIT_FILE = "") (
     input logic clk,
-    input logic reset
+    input logic reset,
+
+    output logic [31:0] debug_a0
 );
 
 logic [31:0] pc, next_pc, instruction;
@@ -43,7 +45,7 @@ program_counter pc_unit (
 	.pc(pc)
 );
 
-instruction_memory imem (
+instruction_memory #( .INIT_FILE(IMEM_INIT_FILE)) imem (
 	.pc(pc),
 	.instruction(instruction)
 );
@@ -68,7 +70,8 @@ register_file rf (
     .rd_addr(rd),
     .rd_data(writeback_data),
     .rs1_data(rs1_data),
-    .rs2_data(rs2_data)
+    .rs2_data(rs2_data),
+    .debug_a0(debug_a0)
 );
 
 control_unit control (

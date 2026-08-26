@@ -1,4 +1,9 @@
-
+# FPGA build outputs
+fpga/**/*.elf
+fpga/**/*.bin
+fpga/**/*.hex
+fpga/**/*.json
+fpga/**/*.fs
 
 
 # Simulation outputs
