@@ -1,225 +1,191 @@
-# RV32I Single-Cycle Core
+<div align="center">
 
-<p align="center">
-  <img src="https://img.shields.io/badge/RISC--V-RV32I-283272?style=flat-square" alt="RISC-V RV32I">
-  <img src="https://img.shields.io/badge/SystemVerilog-RTL-6B4FBB?style=flat-square" alt="SystemVerilog">
-  <img src="https://img.shields.io/badge/Status-v1%20Complete-2EA44F?style=flat-square" alt="Status">
-</p>
+# ⚙️ RV32I Single-Cycle Core
 
-A single-cycle RISC-V processor written in **SystemVerilog** as a learning project.
+### A RISC-V processor built from scratch in SystemVerilog and running on a Tang Nano 9K FPGA.
 
-I built this core from scratch to better understand how RISC-V instructions translate into a processor **datapath**, **control logic**, **memory operations**, and RTL.
+![SystemVerilog](https://img.shields.io/badge/SystemVerilog-RTL-blue)
+![RISC-V](https://img.shields.io/badge/RISC--V-RV32I-darkgreen)
+![FPGA](https://img.shields.io/badge/FPGA-Tang%20Nano%209K-purple)
+![Status](https://img.shields.io/badge/Status-FPGA%20Running-success)
 
-The current version implements the main RV32I instruction families, includes automated regression tests, and can execute assembly programs generated with the **GNU RISC-V toolchain**.
+**37 instructions · Automated verification · GNU RISC-V toolchain · FPGA implementation**
 
----
+[Architecture](#-architecture) •
+[Verification](#-verification) •
+[FPGA](#-fpga-implementation) •
+[Build](#️-build--run) •
+[Roadmap](#️-roadmap)
 
-## ⚙️ Overview
-
-|                        |                                      |
-| ---------------------- | ------------------------------------ |
-| **ISA**                | RV32I                                |
-| **Architecture**       | Single-cycle                         |
-| **RTL**                | SystemVerilog                        |
-| **Datapath width**     | 32-bit                               |
-| **Registers**          | 32 × 32-bit                          |
-| **Memory model**       | Separate instruction and data memory |
-| **Simulation**         | Icarus Verilog                       |
-| **Software toolchain** | GNU RISC-V bare-metal toolchain      |
-
-> Each instruction completes in a **single clock cycle**.
-
-The design is split into separate RTL modules for the main datapath and control components:
-
-* Program counter
-* Register file
-* Immediate generator
-* Control unit
-* ALU decoder
-* ALU
-* Branch unit
-* Instruction memory
-* Data memory
-* Top-level core
+</div>
 
 ---
 
-## 📚 Supported Instructions
+## 🚀 Overview
 
-The core currently implements **37 instructions**.
+This project is a **32-bit single-cycle RV32I processor** developed from scratch as a hands-on study of digital design, computer architecture and FPGA development.
 
-| Category                      | Instructions                                                   |
-| ----------------------------- | -------------------------------------------------------------- |
-| **R-type arithmetic / logic** | `ADD` `SUB` `AND` `OR` `XOR` `SLL` `SRL` `SRA` `SLT` `SLTU` |
-| **I-type arithmetic / logic** | `ADDI` `ANDI` `ORI` `XORI` `SLLI` `SRLI` `SRAI` `SLTI` `SLTIU` |
-| **Loads**                     | `LB` `LBU` `LH` `LHU` `LW` |
-| **Stores**                    | `SB` `SH` `SW` |
-| **Branches**                  | `BEQ` `BNE` `BLT` `BGE` `BLTU` `BGEU` |
-| **Upper immediate**           | `LUI` `AUIPC` |
-| **Jumps**                     | `JAL` `JALR` |
+It currently supports:
 
-Byte and halfword memory accesses include the required **sign/zero extension** and **byte-lane selection** behavior.
+- ✅ 37 RV32I instructions
+- ✅ Arithmetic, control-flow and byte/halfword/word memory operations
+- ✅ Function calls, stack usage and basic RISC-V ABI
+- ✅ Automated regression and GNU RISC-V software flow
+- ✅ Tang Nano 9K FPGA execution with automated build & flash
+
+---
+
+## 🧠 Architecture
+
+The processor follows a **32-bit single-cycle architecture** with separate instruction and data memories.
+
+| RTL Module | Purpose |
+|---|---|
+| `program_counter.sv` | Program counter and PC update |
+| `instruction_fields.sv` | Instruction field extraction |
+| `immediate_generator.sv` | RISC-V immediate generation |
+| `control_unit.sv` | Main instruction control |
+| `alu_decoder.sv` | ALU operation decoding |
+| `alu.sv` | Arithmetic, logic and shift operations |
+| `branch_unit.sv` | Branch condition evaluation |
+| `register_file.sv` | 32 × 32-bit register file |
+| `instruction_memory.sv` | Instruction storage |
+| `data_memory.sv` | Byte / halfword / word data access |
+| `rv32i_core.sv` | Top-level processor datapath and control |
+
+---
+
+## 🧩 Supported Instructions
+
+**37 RV32I instructions** are currently implemented.
+
+| Category | Instructions |
+|---|---|
+| **R-Type** | `ADD` `SUB` `AND` `OR` `XOR` `SLL` `SRL` `SRA` `SLT` `SLTU` |
+| **I-Type** | `ADDI` `ANDI` `ORI` `XORI` `SLLI` `SRLI` `SRAI` `SLTI` `SLTIU` |
+| **Loads** | `LB` `LBU` `LH` `LHU` `LW` |
+| **Stores** | `SB` `SH` `SW` |
+| **Branches** | `BEQ` `BNE` `BLT` `BGE` `BLTU` `BGEU` |
+| **Upper Immediate** | `LUI` `AUIPC` |
+| **Jumps** | `JAL` `JALR` |
+
+---
+
+## 🧪 Verification
+
+The core is tested with automated SystemVerilog regressions and small RISC-V assembly programs.
+
+```bash
+./run_regression.sh
+```
+
+```text
+ALL RV32I REGRESSIONS PASSED
+```
+
+<details>
+<summary><b>What is covered?</b></summary>
+
+Arithmetic, shifts, signed/unsigned comparisons, branches, jumps, byte/halfword/word memory operations, loops, arrays, function calls, stack usage and integrated programs.
+
+</details>
+
+---
+
+## 🛠️ Software Flow
+
+Assembly programs are built using the **GNU RISC-V bare-metal toolchain**:
+
+`Assembly → Object → ELF → Binary → HEX → Instruction Memory`
+
+Target:
+
+```text
+rv32i / ilp32
+```
+
+The generated HEX program is embedded into instruction memory during FPGA synthesis.
+
+---
+
+## ⚡ FPGA Implementation
+
+The processor is running on a **Tang Nano 9K**.
+
+- **FPGA:** Gowin GW1NR-9
+- **Board clock:** 27 MHz
+- **Timing:** ✅ PASS at 27 MHz
+- **nextpnr Fmax estimate:** **36.65 MHz**
+- **Synthesis:** `Yosys`
+- **Place & Route:** `nextpnr`
+- **Bitstream:** `gowin_pack`
+- **Programming:** `openFPGALoader`
+
+The current FPGA demo executes RISC-V code that creates a software delay and toggles a register connected to the onboard LED.
+
+---
+
+## ▶️ Build & Run
+
+From `fpga/rv32i`:
+
+```bash
+make          # Build
+make flash    # Program the FPGA
+make clean    # Remove generated files
+```
+
+<details>
+<summary><b>What does make do?</b></summary>
+
+`program.S → ELF → BIN → HEX → Yosys → nextpnr → Bitstream`
+
+</details>
 
 ---
 
 ## 📁 Project Structure
 
 ```text
-rv32i-core/
-├── rtl/                  # Processor RTL
-├── tb/                   # Unit, regression and integration tests
-├── sw/                   # RISC-V assembly programs
-├── run_regression.sh
-├── .gitignore
-└── README.md
+rtl/            Processor RTL
+tb/             Verification and regression tests
+sw/             RISC-V assembly tests
+fpga/bringup/   Initial FPGA bring-up
+fpga/rv32i/     FPGA implementation and build flow
 ```
 
 ---
 
-## ✅ Verification
+## 🗺️ Roadmap
 
-The core was tested incrementally while developing each part of the datapath.
+### ✅ Completed
 
-The final regression suite covers:
+- ✅ Single-cycle RV32I core
+- ✅ 37 RV32I instructions
+- ✅ Automated regression suite
+- ✅ Assembly programs and basic ABI usage
+- ✅ GNU RISC-V software flow
+- ✅ Tang Nano 9K FPGA bring-up
+- ✅ RV32I execution on FPGA
+- ✅ Automated software-to-FPGA build flow
 
-* R-type and I-type arithmetic
-* Signed and unsigned comparisons
-* Logical and arithmetic shifts
-* Negative immediates
-* Byte, halfword and word memory accesses
-* Sign and zero extension
-* All six conditional branch instructions
-* Taken and not-taken branches
-* `LUI` and `AUIPC`
-* `JAL` and `JALR`
-* JAL/JALR link addresses
-* JALR target alignment
-* Integrated loop, memory and function-call behavior
+### 🚧 Next
 
-### Integration test
+- ⬜ Memory-mapped GPIO
+- ⬜ UART
+- ⬜ Timer
+- ⬜ Minimal RISC-V SoC
+- ⬜ 5-stage pipelined RV32I core
+- ⬜ Forwarding, stalls and hazard handling
 
-A small integration program calculates:
+### 🔬 Later
 
-```text
-1 + 2 + 3 + 4 + 5 = 15
-```
-
-and then calls a function implementing:
-
-```text
-f(x) = 2x + 3
-```
-
-producing:
-
-```text
-f(15) = 33
-```
-
-The program uses loops, branches, loads/stores, `JAL` for the function call and `JALR` for the return.
-
-### Software tests
-
-In addition to instruction-level regressions, I use small RISC-V assembly programs to test the core as a complete processor.
-
-Current examples include:
-
-* Array traversal and summation
-* Positive-element summation with signed values
-* Loops and conditional branches
-* Function calls and returns
-* Nested function calls
-* Stack usage and return-address preservation
-* Basic RISC-V ABI register usage
-
-These programs are stored under `sw/` and executed on the RTL core through the GNU RISC-V toolchain flow described below.
-
-### Run all regressions
-
-```bash
-./run_regression.sh
-```
-
-Expected final output:
-
-```text
-ALL RV32I REGRESSIONS PASSED
-```
+`CSR` · `Interrupts` · `Exceptions` · `Cache` · `Timing / PPA optimization`
 
 ---
 
-## 🛠️ RISC-V Toolchain
+<div align="center">
 
-The project also includes a basic software flow using the **GNU RISC-V bare-metal toolchain**.
+**SystemVerilog · RISC-V · FPGA · Digital Design**
 
-```text
-Assembly (.S)
-      │
-      ▼
-Object file (.o)
-      │
-      ▼
-Linker
-      │
-      ▼
-ELF
-      │
-      ▼
-Raw binary
-      │
-      ▼
-HEX
-      │
-      ▼
-Instruction Memory
-      │
-      ▼
-RV32I Core
-```
-
-Programs are built for:
-
-```text
--march=rv32i
--mabi=ilp32
-```
-
-The generated programs are assembled and linked with the GNU RISC-V toolchain, converted to a simple HEX format, loaded into instruction memory with `$readmemh`, and executed by the core.
-
----
-
-## 🚧 Current Limitations
-
-This is the first single-cycle version of the processor.
-
-The following features are not currently implemented:
-
-* `FENCE`
-* `ECALL` / `EBREAK`
-* Exceptions and traps
-* Interrupts
-* Misaligned access handling
-* Pipeline
-* Cache
-
-These were intentionally left outside the scope of the initial implementation.
-
----
-
-## 🚀 Status
-
-**Single-cycle core v1 complete.**
-
-Current progress:
-
-- [x] Single-cycle RV32I datapath and control
-- [x] 37 RV32I instructions
-- [x] Automated regression tests
-- [x] Assembly program execution
-- [x] Function calls, stack and basic ABI usage
-- [x] GNU RISC-V software flow
-- [ ] Tang Nano 9K FPGA bring-up
-- [ ] FPGA execution of the RV32I core
-- [ ] Basic memory-mapped peripherals
-
-The next step is bringing the design onto a **Tang Nano 9K FPGA**.
+</div>
