@@ -24,6 +24,6 @@ rv32i_core #( .IMEM_INIT_FILE("program.hex") ) cpu (
 );
 
 
-assign led = ~debug_a0[23];
+assign led = ~debug_a0[0];
 
 endmodule
