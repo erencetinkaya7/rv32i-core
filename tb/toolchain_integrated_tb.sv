@@ -6,7 +6,7 @@ module toolchain_integrated_tb;
     logic reset;
     integer errors;
 
-    rv32i_core dut (
+    rv32i_soc dut (
         .clk   (clk),
         .reset (reset)
     );
@@ -19,11 +19,11 @@ module toolchain_integrated_tb;
         input logic [31:0] expected
     );
         begin
-            if (dut.rf.registers[reg_num] !== expected) begin
+            if (dut.cpu.rf.registers[reg_num] !== expected) begin
                 $display(
                     "FAIL: x%0d = %h, expected %h",
                     reg_num,
-                    dut.rf.registers[reg_num],
+                    dut.cpu.rf.registers[reg_num],
                     expected
                 );
                 errors = errors + 1;
@@ -32,7 +32,7 @@ module toolchain_integrated_tb;
                 $display(
                     "PASS: x%0d = %h",
                     reg_num,
-                    dut.rf.registers[reg_num]
+                    dut.cpu.rf.registers[reg_num]
                 );
             end
         end
@@ -50,7 +50,7 @@ module toolchain_integrated_tb;
         // 17 static instructions -> memory[0] through memory[16]
         $readmemh(
             "sw/integrated_program.hex",
-            dut.imem.memory,
+            dut.cpu.imem.memory,
             0,
             16
         );

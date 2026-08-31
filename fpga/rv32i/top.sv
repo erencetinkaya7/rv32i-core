@@ -1,12 +1,15 @@
 module top (
     input logic clk,
-    output logic led
+    input logic btn,
+
+    output logic [5:0] led
 );
 
 logic [7:0] reset_counter = 8'hFF;
 logic reset;
 
 logic [31:0] debug_a0;
+logic [31:0] gpio_out;
 
 // CPU'yu ilk birkac clock cycle icin resette beklet.
 
@@ -17,13 +20,15 @@ end
 
 assign reset = (reset_counter != 8'd0);
 
-rv32i_core #( .IMEM_INIT_FILE("program.hex") ) cpu (
+rv32i_soc #( .IMEM_INIT_FILE("program.hex") ) cpu (
     .clk(clk),
     .reset(reset),
-    .debug_a0(debug_a0)
+    .debug_a0(debug_a0),
+    .gpio_out(gpio_out),
+    .btn(btn)
 );
 
 
-assign led = ~debug_a0[0];
+assign led = ~gpio_out[5:0];
 
 endmodule

@@ -1,8 +1,15 @@
-module rv32i_core #( parameter IMEM_INIT_FILE = "") (
+module rv32i_core #(parameter IMEM_INIT_FILE = "")(
+
     input logic clk,
     input logic reset,
 
-    output logic [31:0] debug_a0
+    output logic [31:0] debug_a0,
+
+    input logic [31:0] data_read_data,
+    output logic [31:0] data_address,
+    output logic [31:0] data_write_data,
+    output logic data_mem_write,
+    output logic [2:0] data_funct3
 );
 
 logic [31:0] pc, next_pc, instruction;
@@ -34,6 +41,11 @@ logic branch_enable;
 logic branch_taken;
 logic jump;
 logic jalr;
+
+assign data_address    = alu_result;
+assign data_write_data = rs2_data;
+assign data_mem_write  = mem_write;
+assign data_funct3     = funct3;
 
 assign pc_plus4 = pc + 32'd4;
 assign pc_target = pc + immediate;
@@ -100,14 +112,7 @@ immediate_generator imm_gen (
     .imm_sel(imm_sel)
 );
 
-data_memory dmem (
-    .clk(clk),
-    .mem_write(mem_write),
-    .address(alu_result),
-    .write_data(rs2_data),
-    .read_data(memory_read_data),
-    .funct3(funct3)
-);
+assign memory_read_data = data_read_data;
 
 assign alu_operand_b = alu_src ? immediate : rs2_data;
 

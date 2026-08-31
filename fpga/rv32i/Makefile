@@ -25,6 +25,7 @@ rv32i_pnr.json: rv32i.json tangnano9k.cst
 		--write rv32i_pnr.json \
 		--device GW1NR-LV9QN88PC6/I5 \
 		--freq 27 \
+		--seed 20 \
 		--vopt family=GW1N-9C \
 		--vopt cst=tangnano9k.cst
 

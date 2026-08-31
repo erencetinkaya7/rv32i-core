@@ -7,7 +7,7 @@ module load_store_regression_tb;
 
     integer errors;
 
-    rv32i_core dut (
+    rv32i_soc dut (
         .clk   (clk),
         .reset (reset)
     );
@@ -20,11 +20,11 @@ module load_store_regression_tb;
         input logic [31:0] expected
     );
         begin
-            if (dut.rf.registers[reg_num] !== expected) begin
+            if (dut.cpu.rf.registers[reg_num] !== expected) begin
                 $display(
                     "FAIL: x%0d = %h, expected %h",
                     reg_num,
-                    dut.rf.registers[reg_num],
+                    dut.cpu.rf.registers[reg_num],
                     expected
                 );
 
@@ -34,7 +34,7 @@ module load_store_regression_tb;
                 $display(
                     "PASS: x%0d = %h",
                     reg_num,
-                    dut.rf.registers[reg_num]
+                    dut.cpu.rf.registers[reg_num]
                 );
             end
         end
@@ -52,9 +52,9 @@ module load_store_regression_tb;
         // Build 0x80FF7F01 and store it to address 0
         // ------------------------------------------------
 
-        dut.imem.memory[0]  = 32'h80ff8a37; // lui  x20,0x80ff8
-        dut.imem.memory[1]  = 32'hf01a0a13; // addi x20,x20,-255
-        dut.imem.memory[2]  = 32'h01402023; // sw   x20,0(x0)
+        dut.cpu.imem.memory[0]  = 32'h80ff8a37; // lui  x20,0x80ff8
+        dut.cpu.imem.memory[1]  = 32'hf01a0a13; // addi x20,x20,-255
+        dut.cpu.imem.memory[2]  = 32'h01402023; // sw   x20,0(x0)
 
 
         // ------------------------------------------------
@@ -67,19 +67,19 @@ module load_store_regression_tb;
         //
         // ------------------------------------------------
 
-        dut.imem.memory[3]  = 32'h00000083; // lb  x1,0(x0)
-        dut.imem.memory[4]  = 32'h00100103; // lb  x2,1(x0)
-        dut.imem.memory[5]  = 32'h00200183; // lb  x3,2(x0)
-        dut.imem.memory[6]  = 32'h00204203; // lbu x4,2(x0)
+        dut.cpu.imem.memory[3]  = 32'h00000083; // lb  x1,0(x0)
+        dut.cpu.imem.memory[4]  = 32'h00100103; // lb  x2,1(x0)
+        dut.cpu.imem.memory[5]  = 32'h00200183; // lb  x3,2(x0)
+        dut.cpu.imem.memory[6]  = 32'h00204203; // lbu x4,2(x0)
 
-        dut.imem.memory[7]  = 32'h00300283; // lb  x5,3(x0)
-        dut.imem.memory[8]  = 32'h00304303; // lbu x6,3(x0)
+        dut.cpu.imem.memory[7]  = 32'h00300283; // lb  x5,3(x0)
+        dut.cpu.imem.memory[8]  = 32'h00304303; // lbu x6,3(x0)
 
-        dut.imem.memory[9]  = 32'h00001383; // lh  x7,0(x0)
-        dut.imem.memory[10] = 32'h00201403; // lh  x8,2(x0)
-        dut.imem.memory[11] = 32'h00205483; // lhu x9,2(x0)
+        dut.cpu.imem.memory[9]  = 32'h00001383; // lh  x7,0(x0)
+        dut.cpu.imem.memory[10] = 32'h00201403; // lh  x8,2(x0)
+        dut.cpu.imem.memory[11] = 32'h00205483; // lhu x9,2(x0)
 
-        dut.imem.memory[12] = 32'h00002503; // lw x10,0(x0)
+        dut.cpu.imem.memory[12] = 32'h00002503; // lw x10,0(x0)
 
 
         // ------------------------------------------------
@@ -91,19 +91,19 @@ module load_store_regression_tb;
         //
         // ------------------------------------------------
 
-        dut.imem.memory[13] = 32'h01100593; // addi x11,x0,0x11
-        dut.imem.memory[14] = 32'h00b00223; // sb   x11,4(x0)
+        dut.cpu.imem.memory[13] = 32'h01100593; // addi x11,x0,0x11
+        dut.cpu.imem.memory[14] = 32'h00b00223; // sb   x11,4(x0)
 
-        dut.imem.memory[15] = 32'h02200593; // addi x11,x0,0x22
-        dut.imem.memory[16] = 32'h00b002a3; // sb   x11,5(x0)
+        dut.cpu.imem.memory[15] = 32'h02200593; // addi x11,x0,0x22
+        dut.cpu.imem.memory[16] = 32'h00b002a3; // sb   x11,5(x0)
 
-        dut.imem.memory[17] = 32'h03300593; // addi x11,x0,0x33
-        dut.imem.memory[18] = 32'h00b00323; // sb   x11,6(x0)
+        dut.cpu.imem.memory[17] = 32'h03300593; // addi x11,x0,0x33
+        dut.cpu.imem.memory[18] = 32'h00b00323; // sb   x11,6(x0)
 
-        dut.imem.memory[19] = 32'h04400593; // addi x11,x0,0x44
-        dut.imem.memory[20] = 32'h00b003a3; // sb   x11,7(x0)
+        dut.cpu.imem.memory[19] = 32'h04400593; // addi x11,x0,0x44
+        dut.cpu.imem.memory[20] = 32'h00b003a3; // sb   x11,7(x0)
 
-        dut.imem.memory[21] = 32'h00402603; // lw x12,4(x0)
+        dut.cpu.imem.memory[21] = 32'h00402603; // lw x12,4(x0)
 
 
         // ------------------------------------------------
@@ -116,22 +116,22 @@ module load_store_regression_tb;
         //
         // ------------------------------------------------
 
-        dut.imem.memory[22] = 32'h12300693; // addi x13,x0,0x123
-        dut.imem.memory[23] = 32'h00d01423; // sh   x13,8(x0)
+        dut.cpu.imem.memory[22] = 32'h12300693; // addi x13,x0,0x123
+        dut.cpu.imem.memory[23] = 32'h00d01423; // sh   x13,8(x0)
 
-        dut.imem.memory[24] = 32'h45600693; // addi x13,x0,0x456
-        dut.imem.memory[25] = 32'h00d01523; // sh   x13,10(x0)
+        dut.cpu.imem.memory[24] = 32'h45600693; // addi x13,x0,0x456
+        dut.cpu.imem.memory[25] = 32'h00d01523; // sh   x13,10(x0)
 
-        dut.imem.memory[26] = 32'h00802703; // lw x14,8(x0)
+        dut.cpu.imem.memory[26] = 32'h00802703; // lw x14,8(x0)
 
 
         // ------------------------------------------------
         // SW regression
         // ------------------------------------------------
 
-        dut.imem.memory[27] = 32'hff800793; // addi x15,x0,-8
-        dut.imem.memory[28] = 32'h00f02623; // sw   x15,12(x0)
-        dut.imem.memory[29] = 32'h00c02803; // lw   x16,12(x0)
+        dut.cpu.imem.memory[27] = 32'hff800793; // addi x15,x0,-8
+        dut.cpu.imem.memory[28] = 32'h00f02623; // sw   x15,12(x0)
+        dut.cpu.imem.memory[29] = 32'h00c02803; // lw   x16,12(x0)
 
 
         // Reset

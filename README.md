@@ -2,14 +2,14 @@
 
 # ⚙️ RV32I Single-Cycle Core
 
-### A RISC-V processor built from scratch in SystemVerilog and running on a Tang Nano 9K FPGA.
+### A RISC-V processor and minimal SoC built from scratch in SystemVerilog and running on a Tang Nano 9K FPGA.
 
 ![SystemVerilog](https://img.shields.io/badge/SystemVerilog-RTL-blue)
 ![RISC-V](https://img.shields.io/badge/RISC--V-RV32I-darkgreen)
 ![FPGA](https://img.shields.io/badge/FPGA-Tang%20Nano%209K-purple)
 ![Status](https://img.shields.io/badge/Status-FPGA%20Running-success)
 
-**37 instructions · Automated verification · GNU RISC-V toolchain · FPGA implementation**
+**37 instructions · Automated verification · GNU RISC-V toolchain · Memory-mapped GPIO · FPGA implementation**
 
 [Architecture](#-architecture) •
 [Verification](#-verification) •
@@ -23,7 +23,7 @@
 
 ## 🚀 Overview
 
-This project is a **32-bit single-cycle RV32I processor** developed from scratch as a hands-on study of digital design, computer architecture and FPGA development.
+This project is a **32-bit single-cycle RV32I processor and minimal SoC** developed from scratch as a hands-on study of digital design, computer architecture and FPGA development.
 
 It currently supports:
 
@@ -32,13 +32,14 @@ It currently supports:
 - ✅ Function calls, nested calls, stack usage and basic RISC-V ABI
 - ✅ Automated regression and GNU RISC-V software flow
 - ✅ Tang Nano 9K FPGA execution with automated build & flash
-- ✅ RAM-based FPGA programs using loads, stores and function calls
+- ✅ SoC-level address decoding and memory-mapped GPIO
+- ✅ 6 onboard LED outputs and onboard button input
 
 ---
 
 ## 🧠 Architecture
 
-The processor follows a **32-bit single-cycle architecture** with separate instruction and data memories.
+The processor follows a **32-bit single-cycle architecture** with separate instruction and data paths.
 
 | RTL Module | Purpose |
 |---|---|
@@ -52,7 +53,11 @@ The processor follows a **32-bit single-cycle architecture** with separate instr
 | `register_file.sv` | 32 × 32-bit register file |
 | `instruction_memory.sv` | Instruction storage |
 | `data_memory.sv` | 64 × 32-bit data memory with byte / halfword / word access |
-| `rv32i_core.sv` | Top-level processor datapath and control |
+| `gpio.sv` | Memory-mapped GPIO peripheral |
+| `rv32i_core.sv` | RV32I processor datapath and control |
+| `rv32i_soc.sv` | SoC integration, address decoding and peripheral interconnect |
+
+The CPU core exposes a simple external data interface, allowing RAM and peripherals to be connected at the SoC level.
 
 ---
 
@@ -74,7 +79,7 @@ The processor follows a **32-bit single-cycle architecture** with separate instr
 
 ## 🧪 Verification
 
-The core is tested with automated SystemVerilog regressions and small RISC-V assembly programs.
+The core and SoC are tested with automated SystemVerilog regressions and RISC-V assembly programs.
 
 ```bash
 ./run_regression.sh
@@ -87,7 +92,7 @@ ALL RV32I REGRESSIONS PASSED
 <details>
 <summary><b>What is covered?</b></summary>
 
-Arithmetic, shifts, signed/unsigned comparisons, branches, jumps, byte/halfword/word memory operations, loops, arrays, function calls, stack usage and integrated programs.
+Arithmetic, shifts, signed/unsigned comparisons, branches, jumps, byte/halfword/word memory operations, loops, arrays, function calls, stack usage, toolchain integration and integrated programs.
 
 </details>
 
@@ -107,37 +112,42 @@ rv32i / ilp32
 
 The generated HEX program is embedded into instruction memory during FPGA synthesis.
 
-Example FPGA programs are kept under:
+Example FPGA programs are stored under:
 
 ```text
 fpga/rv32i/programs/
 ```
 
-including a basic LED blink demo and a RAM / stack / function integration demo.
+Current demos include:
+
+- Basic MMIO LED blink
+- RAM / stack / function integration
+- 6-LED GPIO chaser
+- Button-controlled LED chaser
 
 ---
 
 ## ⚡ FPGA Implementation
 
-The processor is running on a **Tang Nano 9K**.
+The processor and SoC are running on a **Tang Nano 9K**.
 
 - **FPGA:** Gowin GW1NR-9
 - **Board clock:** 27 MHz
 - **Timing:** ✅ PASS at 27 MHz
-- **nextpnr Fmax estimate:** **42.02 MHz**
+- **Typical nextpnr Fmax estimate:** ~40 MHz
 - **Synthesis:** `Yosys`
 - **Place & Route:** `nextpnr`
 - **Bitstream:** `gowin_pack`
 - **Programming:** `openFPGALoader`
 
-The current FPGA integration demo:
+Memory-mapped GPIO currently uses:
 
-1. Stores an integer array in data memory
-2. Calls a RISC-V function to sum only positive values
-3. Uses the stack to preserve registers across nested function calls
-4. Uses the calculated result as the number of onboard LED blinks
+- `0x1000_0000` — GPIO output
+- `0x1000_0004` — GPIO input
 
-This verifies the complete path from **RISC-V assembly → GNU toolchain → instruction/data memory → CPU execution → physical FPGA output**.
+The current FPGA demo drives all six onboard LEDs while reading the onboard button through MMIO. Each button press changes the direction of the moving LED pattern.
+
+The demo verifies bidirectional MMIO between RISC-V software and physical FPGA I/O.
 
 ---
 
@@ -156,6 +166,8 @@ make clean    # Remove generated files
 
 `program.S → ELF → BIN → HEX → Yosys → nextpnr → Bitstream`
 
+The generated bitstream is programmed to the FPGA through JTAG using `openFPGALoader`.
+
 </details>
 
 ---
@@ -163,13 +175,15 @@ make clean    # Remove generated files
 ## 📁 Project Structure
 
 ```text
-rtl/                    Processor RTL
-tb/                     Verification and regression tests
+rtl/                    Processor, memory and peripheral RTL
+tb/                     SystemVerilog verification and regression tests
 sw/                     RISC-V assembly tests
 fpga/bringup/           Initial FPGA bring-up
-fpga/rv32i/             FPGA implementation and build flow
+fpga/rv32i/             RV32I SoC FPGA implementation and build flow
 fpga/rv32i/programs/    FPGA assembly demos
 ```
+
+Generated simulation, toolchain and FPGA build artifacts are excluded through `.gitignore`.
 
 ---
 
@@ -185,14 +199,18 @@ fpga/rv32i/programs/    FPGA assembly demos
 - ✅ Tang Nano 9K FPGA bring-up
 - ✅ RV32I execution on FPGA
 - ✅ Automated software-to-FPGA build flow
-- ✅ RAM, stack and nested-function FPGA integration demo
+- ✅ RAM, stack and nested-function FPGA integration
+- ✅ SoC-level external data interface
+- ✅ Address decoding and memory-mapped I/O
+- ✅ Memory-mapped GPIO output
+- ✅ Memory-mapped onboard button input
+- ✅ 6-LED button-controlled FPGA demo
 
 ### 🚧 Next
 
-- ⬜ Memory-mapped GPIO
-- ⬜ UART
-- ⬜ Timer
-- ⬜ Minimal RISC-V SoC
+- ⬜ Memory-mapped UART
+- ⬜ Hardware timer
+- ⬜ Expanded minimal RISC-V SoC
 - ⬜ 5-stage pipelined RV32I core
 - ⬜ Forwarding, stalls and hazard handling
 

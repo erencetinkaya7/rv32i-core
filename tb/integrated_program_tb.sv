@@ -6,7 +6,7 @@ module integrated_program_tb;
     logic reset;
     integer errors;
 
-    rv32i_core dut (
+    rv32i_soc dut (
         .clk   (clk),
         .reset (reset)
     );
@@ -19,11 +19,11 @@ module integrated_program_tb;
         input logic [31:0] expected
     );
         begin
-            if (dut.rf.registers[reg_num] !== expected) begin
+            if (dut.cpu.rf.registers[reg_num] !== expected) begin
                 $display(
                     "FAIL: x%0d = %h, expected %h",
                     reg_num,
-                    dut.rf.registers[reg_num],
+                    dut.cpu.rf.registers[reg_num],
                     expected
                 );
                 errors = errors + 1;
@@ -32,7 +32,7 @@ module integrated_program_tb;
                 $display(
                     "PASS: x%0d = %h",
                     reg_num,
-                    dut.rf.registers[reg_num]
+                    dut.cpu.rf.registers[reg_num]
                 );
             end
         end
@@ -69,9 +69,9 @@ module integrated_program_tb;
         // x3 = loop limit
         // -------------------------------------------------
 
-        dut.imem.memory[0] = 32'h00100093; // addi x1,x0,1
-        dut.imem.memory[1] = 32'h00000113; // addi x2,x0,0
-        dut.imem.memory[2] = 32'h00600193; // addi x3,x0,6
+        dut.cpu.imem.memory[0] = 32'h00100093; // addi x1,x0,1
+        dut.cpu.imem.memory[1] = 32'h00000113; // addi x2,x0,0
+        dut.cpu.imem.memory[2] = 32'h00600193; // addi x3,x0,6
 
 
         // -------------------------------------------------
@@ -83,14 +83,14 @@ module integrated_program_tb;
         // while (i < 6)
         // -------------------------------------------------
 
-        dut.imem.memory[3] = 32'h00110133; // add  x2,x2,x1
-        dut.imem.memory[4] = 32'h00108093; // addi x1,x1,1
+        dut.cpu.imem.memory[3] = 32'h00110133; // add  x2,x2,x1
+        dut.cpu.imem.memory[4] = 32'h00108093; // addi x1,x1,1
 
         // PC = 20
         // target = 12
         // offset = -8
 
-        dut.imem.memory[5] = 32'hfe30cce3; // blt x1,x3,-8
+        dut.cpu.imem.memory[5] = 32'hfe30cce3; // blt x1,x3,-8
 
 
         // -------------------------------------------------
@@ -99,12 +99,12 @@ module integrated_program_tb;
         // memory[0] = 15
         // -------------------------------------------------
 
-        dut.imem.memory[6] = 32'h00202023; // sw x2,0(x0)
+        dut.cpu.imem.memory[6] = 32'h00202023; // sw x2,0(x0)
 
 
         // Load it back into x4
 
-        dut.imem.memory[7] = 32'h00002203; // lw x4,0(x0)
+        dut.cpu.imem.memory[7] = 32'h00002203; // lw x4,0(x0)
 
 
         // -------------------------------------------------
@@ -116,7 +116,7 @@ module integrated_program_tb;
         // JAL saves PC+4 = 36 into x5
         // -------------------------------------------------
 
-        dut.imem.memory[8] = 32'h00c002ef; // jal x5,+12
+        dut.cpu.imem.memory[8] = 32'h00c002ef; // jal x5,+12
 
 
         // -------------------------------------------------
@@ -125,7 +125,7 @@ module integrated_program_tb;
         // Function returns here.
         // -------------------------------------------------
 
-        dut.imem.memory[9] = 32'h06300313; // addi x6,x0,99
+        dut.cpu.imem.memory[9] = 32'h06300313; // addi x6,x0,99
 
 
         // Skip over function body after returning.
@@ -133,7 +133,7 @@ module integrated_program_tb;
         // PC = 40
         // target = 56
 
-        dut.imem.memory[10] = 32'h0100006f; // jal x0,+16
+        dut.cpu.imem.memory[10] = 32'h0100006f; // jal x0,+16
 
 
         // =================================================
@@ -145,10 +145,10 @@ module integrated_program_tb;
         // =================================================
 
         // PC = 44
-        dut.imem.memory[11] = 32'h00121213; // slli x4,x4,1
+        dut.cpu.imem.memory[11] = 32'h00121213; // slli x4,x4,1
 
         // PC = 48
-        dut.imem.memory[12] = 32'h00320213; // addi x4,x4,3
+        dut.cpu.imem.memory[12] = 32'h00320213; // addi x4,x4,3
 
 
         // -------------------------------------------------
@@ -157,7 +157,7 @@ module integrated_program_tb;
         // x5 contains address 36
         // -------------------------------------------------
 
-        dut.imem.memory[13] = 32'h00028067; // jalr x0,0(x5)
+        dut.cpu.imem.memory[13] = 32'h00028067; // jalr x0,0(x5)
 
 
         // =================================================
@@ -166,17 +166,17 @@ module integrated_program_tb;
 
         // Store result 33 to address 4
 
-        dut.imem.memory[14] = 32'h00402223; // sw x4,4(x0)
+        dut.cpu.imem.memory[14] = 32'h00402223; // sw x4,4(x0)
 
 
         // Load result back
 
-        dut.imem.memory[15] = 32'h00402383; // lw x7,4(x0)
+        dut.cpu.imem.memory[15] = 32'h00402383; // lw x7,4(x0)
 
 
         // End marker
 
-        dut.imem.memory[16] = 32'h00100413; // addi x8,x0,1
+        dut.cpu.imem.memory[16] = 32'h00100413; // addi x8,x0,1
 
 
         // =================================================
