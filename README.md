@@ -191,20 +191,13 @@ Generated simulation, toolchain and FPGA build artifacts are excluded through `.
 
 ### ✅ Completed
 
-- ✅ Single-cycle RV32I core
-- ✅ 37 RV32I instructions
-- ✅ Automated regression suite
-- ✅ Assembly programs and basic ABI usage
-- ✅ GNU RISC-V software flow
-- ✅ Tang Nano 9K FPGA bring-up
-- ✅ RV32I execution on FPGA
-- ✅ Automated software-to-FPGA build flow
-- ✅ RAM, stack and nested-function FPGA integration
-- ✅ SoC-level external data interface
-- ✅ Address decoding and memory-mapped I/O
-- ✅ Memory-mapped GPIO output
-- ✅ Memory-mapped onboard button input
-- ✅ 6-LED button-controlled FPGA demo
+- ✅ Single-cycle RV32I core with 37 instructions
+- ✅ Automated SystemVerilog regression suite
+- ✅ GNU RISC-V assembly and software flow
+- ✅ Function calls, stack and basic ABI support
+- ✅ Tang Nano 9K FPGA implementation
+- ✅ Minimal SoC with memory-mapped GPIO
+- ✅ 6-LED and onboard button FPGA demo
 
 ### 🚧 Next
 
