@@ -16,11 +16,13 @@ module rv32i_soc #( parameter IMEM_INIT_FILE = "" )(
 
 // Memory map
 
-    localparam logic [31:0] GPIO_OUT_ADDR = 32'h1000_0000;
-    localparam logic [31:0] GPIO_IN_ADDR = 32'h1000_0004;
-    localparam logic [31:0] UART_TX_ADDR = 32'h2000_0000;
-    localparam logic [31:0] UART_STATUS_ADDR = 32'h2000_0004;
-
+    localparam logic [31:0] GPIO_OUT_ADDR     = 32'h1000_0000;
+    localparam logic [31:0] GPIO_IN_ADDR      = 32'h1000_0004;
+    localparam logic [31:0] UART_TX_ADDR      = 32'h2000_0000;
+    localparam logic [31:0] UART_STATUS_ADDR  = 32'h2000_0004;
+    localparam logic [31:0] TIMER_LOAD_ADDR   = 32'h3000_0000;
+    localparam logic [31:0] TIMER_STATUS_ADDR = 32'h3000_0004;
+    
 // CPU Data Bus
 
     logic [31:0] data_address;
@@ -36,21 +38,41 @@ module rv32i_soc #( parameter IMEM_INIT_FILE = "" )(
     logic [31:0] gpio_read_data;
 
     logic [31:0] uart_read_data;
-    logic uart_tx_selected;
-    logic uart_status_selected;
 
+    logic [31:0] timer_read_data;
+
+    
+// Peripheral Signals
+
+    logic timer_busy;
+    logic timer_done;
+
+    
 // Address Decoder
 
     logic ram_selected;
+    
     logic gpio_out_selected;
     logic gpio_in_selected;
-
+    
+    logic uart_tx_selected;
+    logic uart_status_selected;
+    
+    logic timer_load_selected;
+    logic timer_status_selected;
+    
     assign ram_selected = (data_address[31:8] == 24'b0);
+    
     assign gpio_in_selected = (data_address == GPIO_IN_ADDR);
     assign gpio_out_selected = (data_address == GPIO_OUT_ADDR);
 
     assign uart_tx_selected = (data_address == UART_TX_ADDR);
     assign uart_status_selected = (data_address == UART_STATUS_ADDR);
+
+    assign timer_load_selected = (data_address == TIMER_LOAD_ADDR);
+    assign timer_status_selected = (data_address == TIMER_STATUS_ADDR);
+    
+    
 // CPU Core 
 
     rv32i_core #(.IMEM_INIT_FILE(IMEM_INIT_FILE)
@@ -105,6 +127,18 @@ module rv32i_soc #( parameter IMEM_INIT_FILE = "" )(
         .tx(uart_tx)
     );
 
+    // Hardware timer
+    timer timer_periph (
+        .clk(clk),
+        .reset(reset),
+        .start(data_mem_write && timer_load_selected),
+        .count_in(data_write_data),
+        .busy(timer_busy),
+        .done(timer_done)
+    );
+    assign timer_read_data = {31'b0, timer_busy};
+
+    
 // Read Data Mux
 // Selects which peripheral returns data to the CPU.
 
@@ -115,6 +149,8 @@ module rv32i_soc #( parameter IMEM_INIT_FILE = "" )(
             data_read_data = ram_read_data;
         else if (uart_status_selected)
             data_read_data = uart_read_data;
+        else if (timer_status_selected)
+            data_read_data = timer_read_data;
         else
             data_read_data = 32'b0;
     end
