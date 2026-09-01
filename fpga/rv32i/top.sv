@@ -2,7 +2,8 @@ module top (
     input logic clk,
     input logic btn,
 
-    output logic [5:0] led
+    output logic [5:0] led,
+    output logic uart_tx
 );
 
 logic [7:0] reset_counter = 8'hFF;
@@ -25,7 +26,8 @@ rv32i_soc #( .IMEM_INIT_FILE("program.hex") ) cpu (
     .reset(reset),
     .debug_a0(debug_a0),
     .gpio_out(gpio_out),
-    .btn(btn)
+    .btn(btn),
+    .uart_tx(uart_tx)
 );
 
 

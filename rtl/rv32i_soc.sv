@@ -8,7 +8,9 @@ module rv32i_soc #( parameter IMEM_INIT_FILE = "" )(
     input  logic        btn,
     
     output logic [31:0] debug_a0,   // Debug output from register x10 (a0)
-    output logic [31:0] gpio_out    // GPIO output register
+    output logic [31:0] gpio_out,    // GPIO output register
+
+    output logic        uart_tx
 );
 
 
@@ -16,7 +18,8 @@ module rv32i_soc #( parameter IMEM_INIT_FILE = "" )(
 
     localparam logic [31:0] GPIO_OUT_ADDR = 32'h1000_0000;
     localparam logic [31:0] GPIO_IN_ADDR = 32'h1000_0004;
-
+    localparam logic [31:0] UART_TX_ADDR = 32'h2000_0000;
+    localparam logic [31:0] UART_STATUS_ADDR = 32'h2000_0004;
 
 // CPU Data Bus
 
@@ -32,6 +35,9 @@ module rv32i_soc #( parameter IMEM_INIT_FILE = "" )(
     logic [31:0] ram_read_data;
     logic [31:0] gpio_read_data;
 
+    logic [31:0] uart_read_data;
+    logic uart_tx_selected;
+    logic uart_status_selected;
 
 // Address Decoder
 
@@ -43,7 +49,8 @@ module rv32i_soc #( parameter IMEM_INIT_FILE = "" )(
     assign gpio_in_selected = (data_address == GPIO_IN_ADDR);
     assign gpio_out_selected = (data_address == GPIO_OUT_ADDR);
 
-
+    assign uart_tx_selected = (data_address == UART_TX_ADDR);
+    assign uart_status_selected = (data_address == UART_STATUS_ADDR);
 // CPU Core 
 
     rv32i_core #(.IMEM_INIT_FILE(IMEM_INIT_FILE)
@@ -88,6 +95,15 @@ module rv32i_soc #( parameter IMEM_INIT_FILE = "" )(
         .read_data(gpio_read_data)
     );
 
+    // UART peripheral
+    uart uart_periph (
+        .clk(clk),
+        .reset(reset),
+        .write_enable(data_mem_write && uart_tx_selected),
+        .write_data(data_write_data),
+        .read_data(uart_read_data),
+        .tx(uart_tx)
+    );
 
 // Read Data Mux
 // Selects which peripheral returns data to the CPU.
@@ -97,6 +113,8 @@ module rv32i_soc #( parameter IMEM_INIT_FILE = "" )(
             data_read_data = gpio_read_data;
         else if (ram_selected)
             data_read_data = ram_read_data;
+        else if (uart_status_selected)
+            data_read_data = uart_read_data;
         else
             data_read_data = 32'b0;
     end
