@@ -18,7 +18,10 @@ run_test () {
     iverilog -g2012 \
         -s "$TB_NAME" \
         -o "${TB_NAME}_sim" \
-        rtl/*.sv \
+        rtl/core/*.sv \
+        rtl/memory/*.sv \
+        rtl/peripherals/*.sv \
+        rtl/soc/*.sv \
         "tb/${TB_NAME}.sv" \
         2> compile.log
 

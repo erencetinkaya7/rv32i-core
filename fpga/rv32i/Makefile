@@ -4,8 +4,7 @@
 
 all: rv32i.fs
 
-
-RTL := $(wildcard ../../rtl/*.sv)
+RTL := $(wildcard ../../rtl/core/*.sv ../../rtl/memory/*.sv ../../rtl/peripherals/*.sv ../../rtl/soc/*.sv)
 
 program.elf: program.S
 	riscv64-unknown-elf-gcc -march=rv32i -mabi=ilp32 -nostdlib -Ttext=0x0 -o program.elf program.S

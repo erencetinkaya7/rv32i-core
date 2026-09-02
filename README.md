@@ -185,7 +185,12 @@ The generated bitstream is programmed to the FPGA through JTAG using `openFPGALo
 ## 📁 Project Structure
 
 ```text
-rtl/                    Processor, memory and peripheral RTL
+rtl/
+├── core/               RV32I datapath and control
+├── memory/             Instruction and data memories
+├── peripherals/        GPIO, UART and hardware timer
+└── soc/                SoC integration and address decoding
+
 tb/                     SystemVerilog verification and regression tests
 sw/                     RISC-V assembly tests
 fpga/bringup/           Initial FPGA bring-up

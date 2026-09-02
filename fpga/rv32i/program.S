@@ -10,6 +10,7 @@ _start:
     li   s5, 6750000   #timer count = 0.5  s at 27MHz
     li   t4, 32         #pattern tasma kontrolu icin
     addi t5, x0, 1
+    addi s6, x0, 0      #onceki buton state i
 
 boot_msg: #"SOC READY\n"
     li   a0, 83          # S
@@ -46,25 +47,29 @@ wait_uart:
     ret
 
 main_loop:
-    sw  s5, 0(s2)       #timer degerini load a yukle
-
-wait_timer:
-    lw  t2, 4(s2)       #timer status oku
-    bne t2, x0, wait_timer #bos degilse wait_timera don
-
-    sw  s3, 0(s0)       #led patterini lede yaz.
-    lw  t3, 4(s0)       # buton status oku
-    beq t3, x0, move
-
-    xori s4, s4, 1      #direction i tersle
-
-wait_release:
-    lw   t3, 4(s0)
-    bne  t3, x0, wait_release
+    sw  s5, 0(s2)           # Load timer status
 
 
-    beq s4, x0, uart_left
-    jal x0, uart_right
+poll_loop:
+    lw   t3, 4(s0)            # Read button
+    beq  t3, x0, no_press
+    bne  s6, x0, no_press
+
+    xori s4, s4, 1          # New press: toggle direction
+    addi s6, t3, 0
+
+    beq  s4, x0, uart_left
+    jal  x0, uart_right
+
+no_press:
+    addi s6, t3, 0          # Save current button state
+
+check_timer:
+    lw   t2, 4(s2)          # Read timer status
+    bne  t2, x0, poll_loop  # Keep polling while timer is busy
+
+    sw  s3, 0(s0)
+    jal x0, move
 
 
 uart_left:
@@ -72,14 +77,14 @@ uart_left:
     jal  ra, putc
     li   a0, 10
     jal  ra, putc
-    jal  x0, move
+    jal  x0, check_timer
 
 uart_right:
     li   a0, 82          # R
     jal  ra, putc
     li   a0, 10
     jal  ra, putc
-    jal  x0, move
+    jal  x0, check_timer
 
 move:
     beq s4, x0, move_left
