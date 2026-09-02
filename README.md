@@ -9,7 +9,7 @@
 ![FPGA](https://img.shields.io/badge/FPGA-Tang%20Nano%209K-purple)
 ![Status](https://img.shields.io/badge/Status-FPGA%20Running-success)
 
-**37 instructions · Automated verification · GNU RISC-V toolchain · Memory-mapped GPIO · FPGA implementation**
+**37 instructions · Automated verification · GNU RISC-V toolchain · GPIO · UART TX · Hardware timer · FPGA implementation**
 
 [Architecture](#-architecture) •
 [Verification](#-verification) •
@@ -32,8 +32,9 @@ It currently supports:
 - ✅ Function calls, nested calls, stack usage and basic RISC-V ABI
 - ✅ Automated regression and GNU RISC-V software flow
 - ✅ Tang Nano 9K FPGA execution with automated build & flash
-- ✅ SoC-level address decoding and memory-mapped GPIO
-- ✅ 6 onboard LED outputs and onboard button input
+- ✅ SoC-level address decoding and memory-mapped peripherals
+- ✅ GPIO input/output, UART TX and hardware timer
+- ✅ Integrated 6-LED, button and UART FPGA demo
 
 ---
 
@@ -54,6 +55,9 @@ The processor follows a **32-bit single-cycle architecture** with separate instr
 | `instruction_memory.sv` | Instruction storage |
 | `data_memory.sv` | 64 × 32-bit data memory with byte / halfword / word access |
 | `gpio.sv` | Memory-mapped GPIO peripheral |
+| `uart_tx.sv` | 8N1 UART transmitter |
+| `uart.sv` | Memory-mapped UART peripheral |
+| `timer.sv` | Memory-mapped hardware countdown timer |
 | `rv32i_core.sv` | RV32I processor datapath and control |
 | `rv32i_soc.sv` | SoC integration, address decoding and peripheral interconnect |
 
@@ -122,8 +126,10 @@ Current demos include:
 
 - Basic MMIO LED blink
 - RAM / stack / function integration
-- 6-LED GPIO chaser
-- Button-controlled LED chaser
+- Button-controlled 6-LED chaser
+- UART TX and `putc` demo
+- Hardware-timer LED chaser
+- Integrated GPIO + UART + timer SoC demo
 
 ---
 
@@ -140,14 +146,18 @@ The processor and SoC are running on a **Tang Nano 9K**.
 - **Bitstream:** `gowin_pack`
 - **Programming:** `openFPGALoader`
 
-Memory-mapped GPIO currently uses:
+### Memory Map
 
-- `0x1000_0000` — GPIO output
-- `0x1000_0004` — GPIO input
+| Address | Peripheral |
+|---|---|
+| `0x1000_0000` | GPIO output |
+| `0x1000_0004` | GPIO input |
+| `0x2000_0000` | UART TX data |
+| `0x2000_0004` | UART status |
+| `0x3000_0000` | Timer load / start |
+| `0x3000_0004` | Timer status |
 
-The current FPGA demo drives all six onboard LEDs while reading the onboard button through MMIO. Each button press changes the direction of the moving LED pattern.
-
-The demo verifies bidirectional MMIO between RISC-V software and physical FPGA I/O.
+The current FPGA demo combines GPIO, UART TX and the hardware timer in a single RISC-V program. It drives a bidirectional 6-LED chaser, changes direction using an onboard button, reports events over UART and supports physical system reset.
 
 ---
 
@@ -196,20 +206,17 @@ Generated simulation, toolchain and FPGA build artifacts are excluded through `.
 - ✅ GNU RISC-V assembly and software flow
 - ✅ Function calls, stack and basic ABI support
 - ✅ Tang Nano 9K FPGA implementation
-- ✅ Minimal SoC with memory-mapped GPIO
-- ✅ 6-LED and onboard button FPGA demo
+- ✅ Minimal SoC with GPIO, UART TX and hardware timer
+- ✅ Integrated physical FPGA demo
 
 ### 🚧 Next
 
-- ⬜ Memory-mapped UART
-- ⬜ Hardware timer
-- ⬜ Expanded minimal RISC-V SoC
 - ⬜ 5-stage pipelined RV32I core
 - ⬜ Forwarding, stalls and hazard handling
 
 ### 🔬 Later
 
-`CSR` · `Interrupts` · `Exceptions` · `Cache` · `Timing / PPA optimization`
+`UART RX` · `CSR` · `Interrupts` · `Exceptions` · `Cache` · `Timing / PPA optimization`
 
 ---
 

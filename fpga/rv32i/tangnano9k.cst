@@ -11,5 +11,8 @@ IO_LOC "led[5]" 16;
 IO_LOC "btn" 3;
 IO_PORT "btn" PULL_MODE=UP;
 
+IO_LOC "reset_btn" 4;
+IO_PORT "reset_btn" PULL_MODE=UP;
+
 IO_LOC "uart_tx" 17;
 IO_PORT "uart_tx" IO_TYPE = LVCMOS33;
